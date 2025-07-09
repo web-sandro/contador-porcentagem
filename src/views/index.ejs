@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="/style.css">
+  <title>Contador</title>
+</head>
+<body>
+  <div class="container">
+    <div class="progress-text">
+      <span id="percentText"><%= porcentagem %></span>%
+    </div>
+
+    <svg class="svg-bar" viewBox="0 0 100 10" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="barGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="green" />
+          <stop offset="50%" stop-color="yellow" />
+          <stop offset="100%" stop-color="red" />
+        </linearGradient>
+        <clipPath id="clip">
+          <rect id="progressRect" x="0" y="0" width="0" height="10" />
+        </clipPath>
+      </defs>
+      <rect x="0" y="0" width="100" height="10" fill="#ddd" />
+      <rect x="0" y="0" width="100" height="10" fill="url(#barGradient)" clip-path="url(#clip)" />
+    </svg>
+
+    <div class="label-icons">
+      <span>✅</span>
+      <span>⚠️</span>
+      <span>❌</span>
+    </div>
+
+    <div class="points-box">
+      Pontos: <span id="pontos"><%= pontoAtual %></span> / <%= pontoFinal %>
+    </div>
+
+    <button onclick="adicionarPonto()">Adicionar Ponto</button>
+    <button onclick="resetarPontos()">Resetar</button>
+  </div>
+
+  <script>
+    function atualizarVisual(pontoAtual, pontoFinal) {
+      const porcentagem = ((pontoAtual / pontoFinal) * 100).toFixed(1);
+      const percentValue = (pontoAtual / pontoFinal) * 100;
+
+      document.getElementById("pontos").textContent = pontoAtual;
+      document.getElementById("percentText").textContent = porcentagem;
+
+      const barWidth = percentValue;
+      const progressRect = document.getElementById("progressRect");
+      progressRect.setAttribute("width", barWidth);
+    }
+
+    function adicionarPonto() {
+      fetch('/somar', { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+          atualizarVisual(data.pontoAtual, data.pontoFinal);
+          if (data.pontoAtual >= data.pontoFinal) {
+            alert("Você atingiu o máximo de pontos!");
+          }
+        });
+    }
+
+    function resetarPontos() {
+      fetch('/resetar', { method: 'POST' })
+        .then(res => res.json())
+        .then(data => atualizarVisual(data.pontoAtual, data.pontoFinal));
+    }
+
+    // Atualiza visual inicial
+    atualizarVisual(<%= pontoAtual %>, <%= pontoFinal %>);
+  </script>
+</body>
+</html>
